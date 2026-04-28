@@ -25,9 +25,10 @@ connectDB();
 // Security middleware
 app.use(helmet());
 app.use(cors({
-  origin: [process.env.CLIENT_URL, "http://localhost:3001"],
+  origin: [process.env.CLIENT_URL, porcess.env.CLIENT_URL2 || 'http://localhost:3000'],
   credentials: true,
-}));
+})); 
+//harsh
 
 // Rate limiting
 const limiter = rateLimit({
