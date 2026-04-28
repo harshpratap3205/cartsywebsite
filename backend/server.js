@@ -25,7 +25,7 @@ connectDB();
 // Security middleware
 app.use(helmet());
 app.use(cors({
-  origin: [process.env.CLIENT_URL, porcess.env.CLIENT_URL2 ],
+  origin: [process.env.CLIENT_URL, process.env.CLIENT_URL2 ],
   credentials: true,
 })); 
 //harsh
