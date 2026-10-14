@@ -44,6 +44,11 @@ const getProducts = async (req, res, next) => {
     let filter = {};
     if (category) filter.category = category;
     if (search) filter.name = { $regex: search, $options: 'i' };
+    if (req.query.minPrice || req.query.maxPrice) {
+      filter.price = {};
+      if (req.query.minPrice) filter.price.$gte = Number(req.query.minPrice);
+      if (req.query.maxPrice) filter.price.$lte = Number(req.query.maxPrice);
+    }
 
     const products = await Product.find(filter)
       .sort(sort)

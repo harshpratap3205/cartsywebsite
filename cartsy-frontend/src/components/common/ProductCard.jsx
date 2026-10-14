@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useDispatch } from 'react-redux'
-import { Heart, ShoppingCart, Minus, Plus, Star } from 'lucide-react'
+import { Heart, ShoppingBag, Minus, Plus, Star, Check } from 'lucide-react'
 import { addToCart } from '../../features/cart/cartSlice'
 import toast from 'react-hot-toast'
 
@@ -17,7 +17,7 @@ const ProductCard = ({ product }) => {
     setIsAdding(true)
     try {
       await dispatch(addToCart({ productId: product._id, quantity })).unwrap()
-      toast.success(`Added ${quantity} x ${product.name} to cart`)
+      toast.success(`Added ${product.name} to cart`)
     } catch (error) {
       toast.error('Failed to add to cart')
     } finally {
@@ -25,151 +25,178 @@ const ProductCard = ({ product }) => {
     }
   }
 
-  const handleWishlist = () => {
+  const handleWishlist = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
     setIsWishlisted(!isWishlisted)
-    toast.success(isWishlisted ? 'Removed from wishlist' : 'Added to wishlist')
+    toast.success(isWishlisted ? 'Removed from wishlist' : 'Saved to wishlist')
   }
 
   const incrementQty = () => {
     if (quantity < product.stock) setQuantity(prev => prev + 1)
-    else toast.error('Out of stock')
+    else toast.error('Maximum available stock reached')
   }
 
   const decrementQty = () => {
     if (quantity > 1) setQuantity(prev => prev - 1)
   }
 
-  // Placeholder rating (3.8 stars) – you can replace with product.rating if available
-  const rating = product.rating || 4.2
+  const rating = product.rating || 4.5
   const ratingStars = Math.floor(rating)
   const hasDiscount = product.discount && product.discount > 0
   const discountedPrice = hasDiscount ? product.price * (1 - product.discount / 100) : product.price
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -5 }}
-      transition={{ duration: 0.3 }}
-      className="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden relative"
+    <div
+      className="group bg-white rounded-2xl border border-slate-200 hover:border-blue-500/70 transition-all duration-200 flex flex-col justify-between overflow-hidden relative"
     >
-      {/* Wishlist Button */}
-      <button
-        onClick={handleWishlist}
-        className="absolute top-3 right-3 z-10 bg-white/80 backdrop-blur-sm p-1.5 rounded-full shadow-sm hover:bg-white transition"
-      >
-        <Heart
-          size={18}
-          className={isWishlisted ? 'fill-red-500 text-red-500' : 'text-gray-600'}
-        />
-      </button>
+      {/* Top Media Container */}
+      <div className="relative bg-slate-50 overflow-hidden">
+        {/* Wishlist Button */}
+        <button
+          onClick={handleWishlist}
+          title={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+          className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm border border-slate-200/80 flex items-center justify-center hover:bg-white transition"
+        >
+          <Heart
+            size={16}
+            className={isWishlisted ? 'fill-rose-500 text-rose-500' : 'text-slate-500 hover:text-rose-500'}
+          />
+        </button>
 
-      {/* Discount Badge */}
-      {hasDiscount && (
-        <div className="absolute top-3 left-3 z-10 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-          {product.discount}% OFF
-        </div>
-      )}
-
-      {/* Image Section */}
-      <Link to={`/product/${product._id}`} className="block overflow-hidden">
-        <motion.img
-          whileHover={{ scale: 1.05 }}
-          transition={{ duration: 0.4 }}
-          src={product.images?.[0] || 'https://via.placeholder.com/300'}
-          alt={product.name}
-          className="w-full h-56 object-cover"
-        />
-      </Link>
-
-      {/* Content Section */}
-      <div className="p-4">
-        <Link to={`/product/${product._id}`}>
-          <h3 className="font-semibold text-lg text-gray-800 hover:text-blue-600 transition line-clamp-1">
-            {product.name}
-          </h3>
-        </Link>
-
-        {/* Rating */}
-        <div className="flex items-center gap-1 mt-1">
-          <div className="flex">
-            {[...Array(5)].map((_, i) => (
-              <Star
-                key={i}
-                size={14}
-                className={i < ratingStars ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}
-              />
-            ))}
-          </div>
-          <span className="text-xs text-gray-500">({rating})</span>
-        </div>
-
-        {/* Description */}
-        <p className="text-gray-500 text-sm mt-1 line-clamp-2">{product.description}</p>
-
-        {/* Price Section */}
-        <div className="mt-3 flex items-baseline gap-2">
-          {hasDiscount ? (
-            <>
-              <span className="text-xl font-bold text-blue-600">₹{discountedPrice.toFixed(0)}</span>
-              <span className="text-sm text-gray-400 line-through">₹{product.price}</span>
-            </>
-          ) : (
-            <span className="text-xl font-bold text-blue-600">₹{product.price}</span>
+        {/* Category & Discount Badges */}
+        <div className="absolute top-3 left-3 z-10 flex flex-col gap-1 items-start">
+          {product.category && (
+            <span className="bg-slate-900/80 backdrop-blur-sm text-white text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-md">
+              {product.category}
+            </span>
+          )}
+          {hasDiscount && (
+            <span className="bg-rose-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-md">
+              {product.discount}% OFF
+            </span>
           )}
         </div>
 
-        {/* Stock Status */}
-        {product.stock <= 5 && product.stock > 0 && (
-          <p className="text-xs text-orange-500 mt-1">Only {product.stock} left!</p>
-        )}
-        {product.stock === 0 && (
-          <p className="text-xs text-red-500 mt-1">Out of stock</p>
-        )}
+        {/* Product Image */}
+        <Link to={`/product/${product._id}`} className="block overflow-hidden aspect-[4/3]">
+          <img
+            src={product.images?.[0] || 'https://via.placeholder.com/400'}
+            alt={product.name}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            loading="lazy"
+          />
+        </Link>
+      </div>
 
-        {/* Quantity & Add to Cart */}
-        {product.stock > 0 ? (
-          <div className="flex items-center justify-between mt-4 gap-2">
-            <div className="flex items-center border rounded-md">
+      {/* Content Section */}
+      <div className="p-4 flex flex-col flex-1 justify-between">
+        <div>
+          {/* Rating */}
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <div className="flex text-amber-400">
+              {[...Array(5)].map((_, i) => (
+                <Star
+                  key={i}
+                  size={12}
+                  className={i < ratingStars ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}
+                />
+              ))}
+            </div>
+            <span className="text-[11px] font-semibold text-slate-500">{rating}</span>
+          </div>
+
+          {/* Title */}
+          <Link to={`/product/${product._id}`}>
+            <h3 className="font-semibold text-slate-900 group-hover:text-blue-600 transition text-sm leading-snug line-clamp-1">
+              {product.name}
+            </h3>
+          </Link>
+
+          {/* Description */}
+          <p className="text-slate-500 text-xs mt-1 line-clamp-2 leading-relaxed">
+            {product.description}
+          </p>
+        </div>
+
+        <div className="mt-4 pt-3 border-t border-slate-100">
+          {/* Price & Stock */}
+          <div className="flex items-baseline justify-between mb-3">
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-lg font-extrabold text-slate-900">
+                ₹{Number(hasDiscount ? discountedPrice : product.price).toLocaleString('en-IN')}
+              </span>
+              {hasDiscount && (
+                <span className="text-xs text-slate-400 line-through">
+                  ₹{Number(product.price).toLocaleString('en-IN')}
+                </span>
+              )}
+            </div>
+
+            {product.stock <= 5 && product.stock > 0 ? (
+              <span className="text-[10px] font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                Only {product.stock} left
+              </span>
+            ) : product.stock === 0 ? (
+              <span className="text-[10px] font-semibold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
+                Out of Stock
+              </span>
+            ) : (
+              <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                In Stock
+              </span>
+            )}
+          </div>
+
+          {/* Quantity & Add to Cart Controls */}
+          {product.stock > 0 ? (
+            <div className="flex items-center gap-2">
+              <div className="flex items-center border border-slate-200 rounded-xl bg-slate-50/50">
+                <button
+                  onClick={decrementQty}
+                  disabled={quantity <= 1}
+                  className="w-7 h-8 flex items-center justify-center text-slate-600 hover:bg-white rounded-l-xl disabled:opacity-30 transition"
+                >
+                  <Minus size={12} />
+                </button>
+                <span className="w-6 text-center text-xs font-semibold text-slate-800">
+                  {quantity}
+                </span>
+                <button
+                  onClick={incrementQty}
+                  disabled={quantity >= product.stock}
+                  className="w-7 h-8 flex items-center justify-center text-slate-600 hover:bg-white rounded-r-xl disabled:opacity-30 transition"
+                >
+                  <Plus size={12} />
+                </button>
+              </div>
+
               <button
-                onClick={decrementQty}
-                disabled={quantity <= 1}
-                className="px-2 py-1 hover:bg-gray-100 disabled:opacity-50 transition"
+                onClick={handleAddToCart}
+                disabled={isAdding}
+                className="flex-1 h-8 flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-medium transition"
               >
-                <Minus size={14} />
-              </button>
-              <span className="w-8 text-center text-sm font-medium">{quantity}</span>
-              <button
-                onClick={incrementQty}
-                disabled={quantity >= product.stock}
-                className="px-2 py-1 hover:bg-gray-100 disabled:opacity-50 transition"
-              >
-                <Plus size={14} />
+                {isAdding ? (
+                  <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <ShoppingBag size={13} />
+                    <span>Add</span>
+                  </>
+                )}
               </button>
             </div>
+          ) : (
             <button
-              onClick={handleAddToCart}
-              disabled={isAdding || product.stock === 0}
-              className="flex items-center gap-1 bg-blue-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50 transition"
+              disabled
+              className="w-full h-8 bg-slate-100 text-slate-400 rounded-xl text-xs font-medium cursor-not-allowed border border-slate-200"
             >
-              {isAdding ? (
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <ShoppingCart size={16} />
-              )}
-              <span>{isAdding ? 'Adding...' : 'Add'}</span>
+              Sold Out
             </button>
-          </div>
-        ) : (
-          <button
-            disabled
-            className="w-full mt-4 bg-gray-300 text-gray-600 py-2 rounded-lg text-sm cursor-not-allowed"
-          >
-            Out of Stock
-          </button>
-        )}
+          )}
+        </div>
       </div>
-    </motion.div>
+    </div>
   )
 }
 

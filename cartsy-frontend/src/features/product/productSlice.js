@@ -28,6 +28,8 @@ const initialState = {
     search: '',
     category: '',
     sort: '-createdAt',
+    minPrice: '',
+    maxPrice: '',
   },
 }
 
@@ -35,18 +37,43 @@ const productSlice = createSlice({
   name: 'products',
   initialState,
   reducers: {
-    setSearchFilter: (state, action) => { state.filters.search = action.payload },
-    setCategoryFilter: (state, action) => { state.filters.category = action.payload; state.currentPage = 1 },
-    setSortFilter: (state, action) => { state.filters.sort = action.payload; state.currentPage = 1 },
-    resetFilters: (state) => {
-      state.filters = { search: '', category: '', sort: '-createdAt' }
+    setSearchFilter: (state, action) => {
+      state.filters.search = action.payload
       state.currentPage = 1
     },
-    clearCurrentProduct: (state) => { state.currentProduct = null },
+    setCategoryFilter: (state, action) => {
+      state.filters.category = action.payload
+      state.currentPage = 1
+    },
+    setSortFilter: (state, action) => {
+      state.filters.sort = action.payload
+      state.currentPage = 1
+    },
+    setPriceFilter: (state, action) => {
+      state.filters.minPrice = action.payload.minPrice
+      state.filters.maxPrice = action.payload.maxPrice
+      state.currentPage = 1
+    },
+    resetFilters: (state) => {
+      state.filters = {
+        search: '',
+        category: '',
+        sort: '-createdAt',
+        minPrice: '',
+        maxPrice: '',
+      }
+      state.currentPage = 1
+    },
+    clearCurrentProduct: (state) => {
+      state.currentProduct = null
+    },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchProducts.pending, (state) => { state.isLoading = true; state.error = null })
+      .addCase(fetchProducts.pending, (state) => {
+        state.isLoading = true
+        state.error = null
+      })
       .addCase(fetchProducts.fulfilled, (state, action) => {
         state.isLoading = false
         state.products = action.payload.products
@@ -57,7 +84,9 @@ const productSlice = createSlice({
         state.isLoading = false
         state.error = action.error.message
       })
-      .addCase(fetchProductById.pending, (state) => { state.isLoading = true })
+      .addCase(fetchProductById.pending, (state) => {
+        state.isLoading = true
+      })
       .addCase(fetchProductById.fulfilled, (state, action) => {
         state.isLoading = false
         state.currentProduct = action.payload
@@ -69,7 +98,15 @@ const productSlice = createSlice({
   },
 })
 
-export const { setSearchFilter, setCategoryFilter, setSortFilter, resetFilters, clearCurrentProduct } = productSlice.actions
+export const {
+  setSearchFilter,
+  setCategoryFilter,
+  setSortFilter,
+  setPriceFilter,
+  resetFilters,
+  clearCurrentProduct,
+} = productSlice.actions
+
 export default productSlice.reducer
 
 // Selectors

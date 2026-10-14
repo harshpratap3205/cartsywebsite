@@ -1,9 +1,17 @@
 const admin = (req, res, next) => {
-  if (req.user && req.user.role === 'admin') {
+  if (req.user && (req.user.role === 'admin' || req.user.role === 'superadmin')) {
     next();
   } else {
-    res.status(403).json({ message: 'Access denied. Admin only.' });
+    res.status(403).json({ message: 'Access denied. Admin or Superadmin only.' });
   }
 };
 
-module.exports = { admin };
+const superAdmin = (req, res, next) => {
+  if (req.user && req.user.role === 'superadmin') {
+    next();
+  } else {
+    res.status(403).json({ message: 'Access denied. Superadmin only.' });
+  }
+};
+
+module.exports = { admin, superAdmin };
