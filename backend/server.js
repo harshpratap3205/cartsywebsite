@@ -24,11 +24,28 @@ connectDB();
 
 // Security middleware
 app.use(helmet());
+
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  process.env.CLIENT_URL2,
+  'https://cartsywebsite.vercel.app',
+  'https://cartsy-admin-panel.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174',
+].filter(Boolean);
+
 app.use(cors({
-  origin: [process.env.CLIENT_URL, process.env.CLIENT_URL2 ],
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin) || origin.startsWith('http://localhost:')) {
+      return callback(null, true);
+    }
+    return callback(null, true);
+  },
   credentials: true,
-})); 
-//harsh
+}));
 
 // Rate limiting
 const limiter = rateLimit({
@@ -51,7 +68,8 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/admin', adminRoutes);
 
-// Health check
+// Health check & root route
+app.get('/', (req, res) => res.status(200).json({ status: 'ok', message: 'Cartsy E-commerce API is running' }));
 app.get('/api/health', (req, res) => res.status(200).json({ status: 'ok' }));
 
 // Error handling middleware (must be last)
